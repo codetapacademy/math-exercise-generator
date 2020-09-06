@@ -1,42 +1,8 @@
 import React, { FC, useState, useEffect, useReducer, useRef } from 'react'
 import { Button } from '../button'
 import { TextInput } from '../text-input'
-const exerciseTypeMap: any = {
-  addition: '+',
-  multiplication: '×',
-}
-
-const exerciseListReducer = (state: any[] = [], action: any) => {
-  switch(action.type) {
-    case 'INIT_LIST':
-      return action.list
-
-    case 'UPDATE_ITEM':
-      return state.map((exercise, index) => {
-        return index === action.item.key
-        ? ({
-          ...exercise,
-          ref: action.item.ref
-        })
-        : exercise
-      })
-
-    case 'UPDATE_SOLUTION':
-      return state.map((exercise, index) => {
-        return index === action.item.key
-        ? ({
-          ...exercise,
-          solution: action.item.solution,
-          solutionLength: String(action.item.solution).length,
-          valid: +action.item.solution === exercise.result
-        })
-        : exercise
-      })
-
-      default:
-      return state
-  }
-}
+import { exerciseListReducer } from './app.reducer'
+import { exerciseTypeMap, max } from './app.config'
 
 const App: FC = () => {
   const typeOfExercises = 'addition'
@@ -48,23 +14,10 @@ const App: FC = () => {
   const [showFinalResult, setShowFinalResult] = useState<Boolean|null>(false)
   const verifyRef = useRef<any>(null)
 
-  const min = [0, 0]
-  const max = [
-    10, // index 0
-    15, // index 1
-    16, // index 2
-    22, // index 3
-    3 // index 4
-  ]
-
   useEffect(() => {
     const bool = exerciseList.every((prop: any) => prop.solutionLength)
     setShowFinalResultButton(bool)
 }, [exerciseList])
-
-  const buttonPropList = {
-    label: 'Generate exercise'
-  }
 
   const handleGenerateExercises = () => {
     // generate exercises from an array of [numberOfExercises]
@@ -138,7 +91,6 @@ const App: FC = () => {
   }
 
   const renderExerciseList = () => {
-    console.log(exerciseList)
     return exerciseList
       .map(({ maxFirstNumber, maxSecondNumber, result, typeOfExercises, valid }: any, key: number) => {
         return (
@@ -159,7 +111,6 @@ const App: FC = () => {
 
   const handleVerifyExercises = () => {
     setShowFinalResult(true)
-    console.log(`We're supposed to do an algo rithm :) to check if all results are valid or invalid and mark them as such`)
   }
 
   return (
