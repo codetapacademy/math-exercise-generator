@@ -1,3 +1,5 @@
+import { speakMessage } from "../../util"
+
 export const exerciseListReducer = (state: any[] = [], action: any): any[] => {
   switch(action.type) {
     case 'INIT_LIST':
@@ -14,6 +16,8 @@ export const exerciseListReducer = (state: any[] = [], action: any): any[] => {
       })
 
     case 'UPDATE_SOLUTION':
+      speakMessage(String(action.item.solution))
+
       return state.map((exercise, index) => {
         return index === action.item.key
         ? ({

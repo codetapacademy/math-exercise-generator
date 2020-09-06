@@ -1,11 +1,13 @@
-import React, { FC, useState, useEffect, useReducer, useRef } from 'react'
+import React, { FC, useState, useEffect, useReducer, useRef, memo, useCallback } from 'react'
 import { Button } from '../button'
 import { TextInput } from '../text-input'
 import { exerciseListReducer } from './app.reducer'
 import { exerciseTypeMap, max } from './app.config'
-
+import { speakMessage } from '../../util'
+const MemoTextIput = memo(TextInput)
+const MemoButton = memo(Button)
 const App: FC = () => {
-  const typeOfExercises = 'addition'
+  const typeOfExercises = 'multiplication'
   const numberOfExercises = 3
   const [exerciseList, updateExerciseList] = useReducer(exerciseListReducer, [])
 
@@ -15,7 +17,13 @@ const App: FC = () => {
   const verifyRef = useRef<any>(null)
 
   useEffect(() => {
-    const bool = exerciseList.every((prop: any) => prop.solutionLength)
+    const bool = exerciseList.length && exerciseList.every((prop: any) => prop.solutionLength) || false
+    console.log(`showGenerateButton, showFinalResultButton`)
+    console.log(showGenerateButton, showFinalResultButton, bool, exerciseList)
+    !showGenerateButton && showFinalResultButton && speakMessage(`
+      You've got ${exerciseList.filter((prop: any) => prop.valid).length} right and
+      ${exerciseList.filter((prop: any) => !prop.valid).length} wrong.
+    `)
     setShowFinalResultButton(bool)
 }, [exerciseList])
 
@@ -30,10 +38,10 @@ const App: FC = () => {
             const maxSecondNumber = Math.ceil(Math.random() * max[1])
 
             let result = 0
-            if (typeOfExercises === 'addition') {
-              result = maxFirstNumber + maxSecondNumber
-            }
-            else if (typeOfExercises === 'multiplication') {
+            // if (typeOfExercises === 'addition') {
+            //   result = maxFirstNumber + maxSecondNumber
+            // }
+            if (typeOfExercises === 'multiplication') {
               result = maxFirstNumber * maxSecondNumber
             }
 
@@ -58,12 +66,12 @@ const App: FC = () => {
     setShowGenerateButton(false)
   }
 
-  const addToList = (key: number, ref: any) => {
+  const addToList = useCallback((key: number, ref: any) => {
     updateExerciseList({
       type: 'UPDATE_ITEM',
       item: { key, ref }
     })
-  }
+  }, [])
   
   const handleOnKeyDown = (e: any, value: any) => {
     if (e.key === 'Enter') {
@@ -71,7 +79,6 @@ const App: FC = () => {
       const current = +dataset.id
       const next = current + 1
 
-      console.log(verifyRef)
       if (exerciseList[next]) {
         exerciseList[next].ref.current.focus()
       } else if (verifyRef.current) {
@@ -98,12 +105,11 @@ const App: FC = () => {
             backgroundColor: showFinalResult
               ? (valid ? 'green' : 'red') : 'transparent'
           }}>
-            {maxFirstNumber} {exerciseTypeMap[typeOfExercises]} {maxSecondNumber} = <TextInput
+            {maxFirstNumber} {exerciseTypeMap[typeOfExercises]} {maxSecondNumber} = <MemoTextIput
               index={key}
               addToList={addToList}
               onKeyDown={handleOnKeyDown}
             />
-            {showFinalResult && <small>{result}</small>}
           </div>
         )
       })
@@ -117,7 +123,7 @@ const App: FC = () => {
     <div>
       <h1>This is the App</h1>
       {!showGenerateButton && (
-        <Button
+        <MemoButton
           label="Verify Exercise"
           onClick={handleVerifyExercises}
           disabled={!showFinalResultButton}
@@ -126,7 +132,7 @@ const App: FC = () => {
       )}
       {renderExerciseList()}
       {showGenerateButton && (
-        <Button
+        <MemoButton
           label="Generate Exercise"
           onClick={handleGenerateExercises}
         />

@@ -7,9 +7,8 @@ const TextInput = ({ index, addToList, onKeyDown }: any) => {
   }
 
   useEffect(() => {
-    console.log(inputRef.current)
     addToList(index, inputRef)
-  }, [])
+  }, [addToList, index])
 
   return (
     <input
