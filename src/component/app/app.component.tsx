@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect, useReducer } from 'react'
+import React, { FC, useState, useEffect, useReducer, useRef } from 'react'
 import { Button } from '../button'
 import { TextInput } from '../text-input'
 const exerciseTypeMap: any = {
@@ -21,6 +21,18 @@ const exerciseListReducer = (state: any[] = [], action: any) => {
         : exercise
       })
 
+    case 'UPDATE_SOLUTION':
+      return state.map((exercise, index) => {
+        return index === action.item.key
+        ? ({
+          ...exercise,
+          solution: action.item.solution,
+          solutionLength: String(action.item.solution).length,
+          valid: +action.item.solution === exercise.result
+        })
+        : exercise
+      })
+
       default:
       return state
   }
@@ -32,6 +44,10 @@ const App: FC = () => {
   const [exerciseList, updateExerciseList] = useReducer(exerciseListReducer, [])
 
   const [showGenerateButton, setShowGenerateButton] = useState<Boolean>(true)
+  const [showFinalResultButton, setShowFinalResultButton] = useState<Boolean>(false)
+  const [showFinalResult, setShowFinalResult] = useState<Boolean|null>(false)
+  const verifyRef = useRef<any>(null)
+
   const min = [0, 0]
   const max = [
     10, // index 0
@@ -42,9 +58,9 @@ const App: FC = () => {
   ]
 
   useEffect(() => {
-    console.log(`exerciseList`)
-    console.log(exerciseList)
-  }, [exerciseList])
+    const bool = exerciseList.every((prop: any) => prop.solutionLength)
+    setShowFinalResultButton(bool)
+}, [exerciseList])
 
   const buttonPropList = {
     label: 'Generate exercise'
@@ -74,6 +90,8 @@ const App: FC = () => {
               result,
               index: k,
               solution: null,
+              solutionLength: 0,
+              valid: false,
               typeOfExercises
             }
           }
@@ -96,39 +114,50 @@ const App: FC = () => {
   
   const handleOnKeyDown = (e: any, value: any) => {
     if (e.key === 'Enter') {
-      console.info(`Try to focus next one`)
-      console.log(exerciseList, value)
-      const { dataset = 222 } = e.target
-      console.log(dataset.id)
-      
-      console.log(`exerciseList[dataset.id + 1].ref.current.focus()`)
-      console.log(exerciseList[dataset.id])
-      console.log(exerciseList[+dataset.id + 1])
+      const { dataset = 0 } = e.target
+      const current = +dataset.id
+      const next = current + 1
 
-      if (exerciseList[+dataset.id + 1]) {
-        exerciseList[+dataset.id + 1].ref.current.focus()
+      if (exerciseList[next]) {
+        exerciseList[next].ref.current.focus()
+      } else if (verifyRef.current) {
+        verifyRef.current.focus()
       }
+
+      const { value } = exerciseList[current].ref.current
+
+      updateExerciseList({
+        type: 'UPDATE_SOLUTION',
+        item: {
+          key: current,
+          solution: value
+        }
+      })
     }
   }
 
   const renderExerciseList = () => {
     console.log(exerciseList)
     return exerciseList
-      .map(({ maxFirstNumber, maxSecondNumber, result, typeOfExercises }: any, key: number) => {
+      .map(({ maxFirstNumber, maxSecondNumber, result, typeOfExercises, valid }: any, key: number) => {
         return (
-          <div key={key}>
+          <div key={key} style={{
+            backgroundColor: showFinalResult
+              ? (valid ? 'green' : 'red') : 'transparent'
+          }}>
             {maxFirstNumber} {exerciseTypeMap[typeOfExercises]} {maxSecondNumber} = <TextInput
               index={key}
               addToList={addToList}
               onKeyDown={handleOnKeyDown}
             />
-            <small>{result}</small>
+            {showFinalResult && <small>{result}</small>}
           </div>
         )
       })
   }
 
   const handleVerifyExercises = () => {
+    setShowFinalResult(true)
     console.log(`We're supposed to do an algo rithm :) to check if all results are valid or invalid and mark them as such`)
   }
 
@@ -139,7 +168,8 @@ const App: FC = () => {
         <Button
           label="Verify Exercise"
           onClick={handleVerifyExercises}
-          disabled={true}
+          disabled={!showFinalResultButton}
+          ref={verifyRef}
         />
       )}
       {renderExerciseList()}

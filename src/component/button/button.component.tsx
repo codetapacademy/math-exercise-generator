@@ -4,6 +4,7 @@ type ButtonType = {
   label: string;
   onClick(): void;
   disabled?: boolean;
+  ref?: any;
 }
 
 const Button: FC<ButtonType> = ({ label, onClick, disabled }: ButtonType ): any => {
