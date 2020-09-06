@@ -40,7 +40,7 @@ const exerciseListReducer = (state: any[] = [], action: any) => {
 
 const App: FC = () => {
   const typeOfExercises = 'addition'
-  const numberOfExercises = 5
+  const numberOfExercises = 3
   const [exerciseList, updateExerciseList] = useReducer(exerciseListReducer, [])
 
   const [showGenerateButton, setShowGenerateButton] = useState<Boolean>(true)
@@ -118,6 +118,7 @@ const App: FC = () => {
       const current = +dataset.id
       const next = current + 1
 
+      console.log(verifyRef)
       if (exerciseList[next]) {
         exerciseList[next].ref.current.focus()
       } else if (verifyRef.current) {
@@ -169,7 +170,7 @@ const App: FC = () => {
           label="Verify Exercise"
           onClick={handleVerifyExercises}
           disabled={!showFinalResultButton}
-          ref={verifyRef}
+          forwardedRef={verifyRef}
         />
       )}
       {renderExerciseList()}
